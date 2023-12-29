@@ -6,23 +6,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.function.Predicate;
 
-public class MidiFootController {	
-	public static boolean isIOMidiDevice(MidiDevice device) {
-		return ((device instanceof Sequencer) || (device instanceof Synthesizer));
-	}
-	
-	public static String getCommandName(int command) {
-		return switch (command) {
-			case ShortMessage.NOTE_OFF -> "NOTE_OFF";
-			case ShortMessage.POLY_PRESSURE -> "POLY_PRESSURE";
-			case ShortMessage.CONTROL_CHANGE -> "CONTROL_CHANGE";
-			case ShortMessage.PROGRAM_CHANGE -> "PROGRAM_CHANGE";
-			case ShortMessage.CHANNEL_PRESSURE -> "CHANNEL_PRESSURE";
-			case ShortMessage.PITCH_BEND -> "PITCH_BEND";
-			default ->"Unknown";
-		};
-	}
-	
+public class MidiFootController {		
 	public static MidiDevice[] devicesFromInfos(MidiDevice.Info[] infos) {
 		var devices = new MidiDevice[infos.length];
 		for (int i = 0; i < infos.length; i++) {
@@ -39,7 +23,7 @@ public class MidiFootController {
 	public MidiFootController() {
 		var deviceInfos = MidiSystem.getMidiDeviceInfo();
 		//var devices = devicesFromInfos(deviceInfos);
-		Predicate<MidiDevice> isPort = device -> isIOMidiDevice(device);
+		Predicate<MidiDevice> isPort = device -> Utils.isIOMidiDevice(device);
 		
 		var devices = Arrays.stream(devicesFromInfos(deviceInfos))
 							//.filter(isPort.negate())
@@ -108,7 +92,7 @@ public class MidiFootController {
 				System.out.println();
 				System.out.printf(
 					"Command: %s(%d)\nChannel: %d\nData1: %d\nData2: %d",
-					getCommandName(command), command, channel, data1, data2);
+					Utils.getCommandName(command), command, channel, data1, data2);
 				System.out.println();
 			}
 		}
