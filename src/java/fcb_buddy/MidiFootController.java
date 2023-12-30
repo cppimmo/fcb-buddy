@@ -1,31 +1,17 @@
 package fcb_buddy;
 
 import javax.sound.midi.*;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.function.Predicate;
 
-public class MidiFootController {		
-	public static MidiDevice[] devicesFromInfos(MidiDevice.Info[] infos) {
-		var devices = new MidiDevice[infos.length];
-		for (int i = 0; i < infos.length; i++) {
-			try {
-				devices[i] = MidiSystem.getMidiDevice(infos[i]);
-			} catch (MidiUnavailableException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		return devices;
-	}
-	
+public class MidiFootController {
 	public MidiFootController() {
 		var deviceInfos = MidiSystem.getMidiDeviceInfo();
 		//var devices = devicesFromInfos(deviceInfos);
 		Predicate<MidiDevice> isPort = device -> Utils.isIOMidiDevice(device);
 		
-		var devices = Arrays.stream(devicesFromInfos(deviceInfos))
+		var devices = Arrays.stream(Utils.devicesFromInfos(deviceInfos))
 							//.filter(isPort.negate())
 							.toArray(MidiDevice[]::new);
 		// MidiInDevice
@@ -58,46 +44,18 @@ public class MidiFootController {
 		}
 		
 		MidiDevice device = devices[3];
-		
-		
-		CustomReceiver customReceiver = new CustomReceiver();
-		
 		Transmitter transmitter;
 		try {
 			device.open();
 			
 			transmitter = device.getTransmitter();
-			transmitter.setReceiver(customReceiver);
+			transmitter.setReceiver(new LoggingReciever(System.out));
 			
 			System.out.println("Press enter to quit.");
 			System.in.read();
 		} catch (MidiUnavailableException | IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
 		device.close();
-	}
-
-	static class CustomReceiver implements Receiver {
-		@Override
-		public void send(MidiMessage message, long timeStamp) {
-			if (message instanceof ShortMessage) {
-				ShortMessage shortMessage = (ShortMessage) message;
-				int command = shortMessage.getCommand();
-				int channel = shortMessage.getChannel();
-				int data1 = shortMessage.getData1();
-				int data2 = shortMessage.getData2();
-				
-				System.out.println();
-				System.out.printf(
-					"Command: %s(%d)\nChannel: %d\nData1: %d\nData2: %d",
-					Utils.getCommandName(command), command, channel, data1, data2);
-				System.out.println();
-			}
-		}
-
-		@Override
-		public void close() { }
 	}
 }

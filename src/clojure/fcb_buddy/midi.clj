@@ -5,36 +5,35 @@
            [javafx.scene.control Dialog DialogEvent]
            [javax.sound.midi MidiSystem]))
 
+(defn io-type->str
+  "Return string representation of MIDI type :in or :out."
+  [type]
+  (condp = type
+    :in "IN"
+    :out "OUT"))
+
 (defn- device-dialog
   "Dialog for selecting the MIDI device that represents the FCB1010.
   Returns selected choice map which contains device info that can be used to index the selected device."
   [type]
-  (comment (input "Pick the MIDI OUT port representing your FCB1010"
-                  :title "Pick a MIDI Device"
-                  ;; MidiDevice.Info members: description, name, vendor, & version
-                  :choices (mapv bean (MidiSystem/getMidiDeviceInfo))
-                  :to-string (fn [choice]
-                               (str (:name choice) " | " (:vendor choice)))))
-  (letfn [(io->str [type]
-            (condp = type
-              :in "IN"
-              :out "OUT"))]
-    (fx/create-component
-     {:fx/type :choice-dialog
-      :showing true
-      :header-text (str "Pick a MIDI " (io->str type) " Device")
-      :content-text (str "Choose the MIDI "
-                         (io->str type)
-                         " port representing your FCB1010")
-      :on-close-request (fn [^DialogEvent e]
-                          (if (nil? (.getResult ^Dialog (.getSource e)))
-                            (.consume e)
-                            (.getResult ^Dialog (.getSource e))))
-                         
-      :items (mapv bean (MidiSystem/getMidiDeviceInfo))})))
+  ;; MidiDevice.Info members: description, name, vendor, & version
+  (letfn [(item->str [choice]
+            (str (:name choice) " | " (:vendor choice)))]
+    (let [items (mapv bean (MidiSystem/getMidiDeviceInfo))
+          type-str (io-type->str type)]
+      (fx/create-component
+       {:fx/type :choice-dialog
+        :showing true
+        :header-text (str "Pick a MIDI " type-str " Device")
+        :content-text (str "Choose the MIDI " type-str " port representing your FCB1010")
+        :on-close-request (fn [^DialogEvent e]
+                            (when (nil? (.getResult ^Dialog (.getSource e)))
+                              (.consume e)))
+        :items (mapv item->str items)
+        :selected-item (-> items first item->str)}))))
 
-(defn in-device-dialog [_]
+(defn in-device-dialog []
   (device-dialog :in))
 
-(defn out-device-dialog [_]
+(defn out-device-dialog []
   (device-dialog :out))

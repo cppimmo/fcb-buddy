@@ -10,7 +10,8 @@
             [fcb-buddy.prefs :as prefs]
             [fcb-buddy.utils :as utils]
             [environ.core :refer [env]])
-  (:import [fcb_buddy MidiFootController Utils])
+  (:import [fcb_buddy MidiFootController Utils]
+           [javafx.application Platform])
   (:gen-class))
 
 (comment
@@ -72,7 +73,7 @@
 
 (def menu-actions
   {:file {:open (fn [_])
-          :quit (fn [_])}
+          :quit (fn [_] (Platform/exit))}
    :edit {:prefs (fn [_])}
    :midi nil
    :tools nil
@@ -184,6 +185,7 @@
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
+  ;(Platform/setImplicitExit true) ; Shut JavaFX runtime down when last window is closed
   (fx/create-app
    *context
    :event-handler event-handler
